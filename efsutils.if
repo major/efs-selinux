@@ -1,0 +1,166 @@
+
+## <summary>policy for efsutils</summary>
+
+########################################
+## <summary>
+##	Execute efsutils_exec_t in the efsutils domain.
+## </summary>
+## <param name="domain">
+## <summary>
+##	Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`efsutils_domtrans',`
+	gen_require(`
+		type efsutils_t, efsutils_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	domtrans_pattern($1, efsutils_exec_t, efsutils_t)
+')
+
+######################################
+## <summary>
+##	Execute efsutils in the caller domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`efsutils_exec',`
+	gen_require(`
+		type efsutils_exec_t;
+	')
+
+	corecmd_search_bin($1)
+	can_exec($1, efsutils_exec_t)
+')
+########################################
+## <summary>
+##	Read efsutils's log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`efsutils_read_log',`
+	gen_require(`
+		type efsutils_log_t;
+	')
+
+	logging_search_logs($1)
+	read_files_pattern($1, efsutils_log_t, efsutils_log_t)
+')
+
+########################################
+## <summary>
+##	Append to efsutils log files.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`efsutils_append_log',`
+	gen_require(`
+		type efsutils_log_t;
+	')
+
+	logging_search_logs($1)
+	append_files_pattern($1, efsutils_log_t, efsutils_log_t)
+')
+
+########################################
+## <summary>
+##	Manage efsutils log files
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+#
+interface(`efsutils_manage_log',`
+	gen_require(`
+		type efsutils_log_t;
+	')
+
+	logging_search_logs($1)
+	manage_dirs_pattern($1, efsutils_log_t, efsutils_log_t)
+	manage_files_pattern($1, efsutils_log_t, efsutils_log_t)
+	manage_lnk_files_pattern($1, efsutils_log_t, efsutils_log_t)
+')
+########################################
+## <summary>
+##	Execute efsutils server in the efsutils domain.
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed to transition.
+##	</summary>
+## </param>
+#
+interface(`efsutils_systemctl',`
+	gen_require(`
+		type efsutils_t;
+		type efsutils_unit_file_t;
+	')
+
+	systemd_exec_systemctl($1)
+        systemd_read_fifo_file_passwd_run($1)
+	allow $1 efsutils_unit_file_t:file read_file_perms;
+	allow $1 efsutils_unit_file_t:service manage_service_perms;
+
+	ps_process_pattern($1, efsutils_t)
+')
+
+
+########################################
+## <summary>
+##	All of the rules required to administrate
+##	an efsutils environment
+## </summary>
+## <param name="domain">
+##	<summary>
+##	Domain allowed access.
+##	</summary>
+## </param>
+## <param name="role">
+##	<summary>
+##	Role allowed access.
+##	</summary>
+## </param>
+## <rolecap/>
+#
+interface(`efsutils_admin',`
+	gen_require(`
+		type efsutils_t;
+		type efsutils_log_t;
+	type efsutils_unit_file_t;
+	')
+
+	allow $1 efsutils_t:process { signal_perms };
+	ps_process_pattern($1, efsutils_t)
+
+    tunable_policy(`deny_ptrace',`',`
+        allow $1 efsutils_t:process ptrace;
+    ')
+
+	logging_search_logs($1)
+	admin_pattern($1, efsutils_log_t)
+
+	efsutils_systemctl($1)
+	admin_pattern($1, efsutils_unit_file_t)
+	allow $1 efsutils_unit_file_t:service all_service_perms;
+	optional_policy(`
+		systemd_passwd_agent_exec($1)
+		systemd_read_fifo_file_passwd_run($1)
+	')
+')

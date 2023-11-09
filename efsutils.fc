@@ -1,0 +1,5 @@
+/usr/bin/amazon-efs-mount-watchdog		--	gen_context(system_u:object_r:efsutils_exec_t,s0)
+
+/usr/lib/systemd/system/amazon-efs-mount-watchdog.service		--	gen_context(system_u:object_r:efsutils_unit_file_t,s0)
+
+/var/log/amazon/efs(/.*)?		gen_context(system_u:object_r:efsutils_log_t,s0)

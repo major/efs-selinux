@@ -1,0 +1,29 @@
+
+require {
+	type efsutils_t;
+	type var_run_t;
+	class file { create getattr ioctl open read rename setattr unlink write };
+	class process getpgid;
+	class netlink_route_socket { bind create getattr nlmsg_read };
+	class unix_dgram_socket { connect create };
+	class tcp_socket { getattr listen };
+}
+
+#============= efsutils_t ==============
+allow efsutils_t self:netlink_route_socket { bind create getattr nlmsg_read };
+allow efsutils_t self:process getpgid;
+allow efsutils_t self:tcp_socket { getattr listen };
+allow efsutils_t self:unix_dgram_socket { connect create };
+allow efsutils_t var_run_t:file { create getattr ioctl open read rename setattr unlink write };
+corecmd_exec_bin(efsutils_t)
+corecmd_mmap_bin_files(efsutils_t)
+corenet_tcp_bind_generic_node(efsutils_t)
+corenet_tcp_bind_generic_port(efsutils_t)
+files_rw_pid_dirs(efsutils_t)
+fs_getattr_nfs(efsutils_t)
+fs_list_nfs(efsutils_t)
+kernel_dgram_send(efsutils_t)
+logging_create_devlog_dev(efsutils_t)
+logging_read_syslog_pid(efsutils_t)
+miscfiles_read_certs(efsutils_t)
+miscfiles_search_generic_cert_dirs(efsutils_t)

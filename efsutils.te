@@ -1,0 +1,36 @@
+policy_module(efsutils, 1.0.0)
+
+########################################
+#
+# Declarations
+#
+
+type efsutils_t;
+type efsutils_exec_t;
+init_daemon_domain(efsutils_t, efsutils_exec_t)
+
+permissive efsutils_t;
+
+type efsutils_log_t;
+logging_log_file(efsutils_log_t)
+
+type efsutils_unit_file_t;
+systemd_unit_file(efsutils_unit_file_t)
+
+########################################
+#
+# efsutils local policy
+#
+allow efsutils_t self:fifo_file rw_fifo_file_perms;
+allow efsutils_t self:unix_stream_socket create_stream_socket_perms;
+
+manage_dirs_pattern(efsutils_t, efsutils_log_t, efsutils_log_t)
+manage_files_pattern(efsutils_t, efsutils_log_t, efsutils_log_t)
+manage_lnk_files_pattern(efsutils_t, efsutils_log_t, efsutils_log_t)
+logging_log_filetrans(efsutils_t, efsutils_log_t, { dir file lnk_file })
+
+domain_use_interactive_fds(efsutils_t)
+
+files_read_etc_files(efsutils_t)
+
+miscfiles_read_localization(efsutils_t)

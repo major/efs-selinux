@@ -8,6 +8,8 @@ restorecon -R /var/log/amazon/efs; \
 
 %define selinux_policyver 39.1-1
 
+%global selinuxbooleans domain_can_mmap_files=1
+
 Name:   efsutils_selinux
 Version:	1.0
 Release:	1%{?dist}
@@ -48,7 +50,7 @@ semodule -n -i %{_datadir}/selinux/packages/efsutils.pp
 if /usr/sbin/selinuxenabled ; then
     /usr/sbin/load_policy
     %relabel_files
-
+    %selinux_set_booleans -s %{selinuxtype} %{selinuxbooleans}
 fi;
 exit 0
 
@@ -58,6 +60,7 @@ if [ $1 -eq 0 ]; then
     if /usr/sbin/selinuxenabled ; then
        /usr/sbin/load_policy
        %relabel_files
+       %selinux_unset_booleans -s %{selinuxtype} %{selinuxbooleans}
 
     fi;
 fi;
